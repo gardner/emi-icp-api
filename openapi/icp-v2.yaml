@@ -1,0 +1,596 @@
+openapi: 3.0.1
+info:
+  title: ICP connection data v2
+  description: "The ICP connection data API provides two functions to get data on Installation Control Points (ICP):\n<ul>\n<li>The GET action - a search function, allows searching by via address filters and returns matching results allowing the correct ICP to be identified.</li>\n<li>The GET action - get by id, takes a single ICP and returns detailed information about it.</li>\n\n</ul>\n\n<p>\n<p>A management policy for this API is set in the <a href=\"https://emi.portal.azure-api.net/products/56a92b7074ff88075485e86b\"> API product</a>.\n</p>\n\nIn order to use the ICP connection data you must subscribe to the <a href=\"https://emi.portal.azure-api.net/products\">ICP connection data</a> API product to receive your API key.\n<p>"
+  version: v2
+servers:
+  - url: https://emi.azure-api.net/ICPConnectionData/v2
+paths:
+  /search/:
+    get:
+      summary: Search
+      description: 'The most accurate and fast way to find connection information is by using the ‘get by id’ call with an ICP number. This is a wildcard search filter and if you are using this search function you will likely get multiple addresses returned. For example a search for “2 Main Street” will return results for locations at 2, 20, 22… etc, along with results for any other Main Streets around the country. However, in some instances no information might be returned. This may be due to the way the address information is stored in the registry or other differences between the address of the ICP and the address entered or address that the ICP serves. ICP numbers can be found on any power bill.'
+      operationId: search
+      parameters:
+        - name: streetNumber
+          in: query
+          description: 'The street number. This is a wildcard value. (e.g. 2 will return 2, 20, 22 etc)'
+          schema:
+            type: string
+        - name: streetName
+          in: query
+          description: The street name. This is a wildcard value.
+          schema:
+            type: string
+        - name: suburbOrTown
+          in: query
+          description: The suburb or town. This is a wildcard value.
+          schema:
+            type: string
+        - name: region
+          in: query
+          description: The region. This is NOT a wildcard value.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ICPSearchDetails'
+              example:
+                Address:
+                  PropertyNameOrDescription: string
+                  PhysicalAddressUnit: string
+                  PhysicalAddressNumber: string
+                  PhysicalAddressStreet: string
+                  PhysicalAddressSuburb: string
+                  PhysicalAddressTown: string
+                  PhysicalAddressRegion: string
+                  PhysicalAddressPostCode: 0
+                  GPS_Easting: 0.111580782650687
+                  GPS_Northing: 0.53635229909463
+                ICPIdentifier: string
+                ICPStatus: 0
+                Messages:
+                  - string
+        '400':
+          description: Invalid search filters provided - at least streetNumber AND streetName must contain values. Optionally also provide values for suburbOrTown and/or region.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              example:
+                Message: string
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fobidden'
+              example:
+                statusCode: 0
+                message: string
+        '429':
+          description: The management policy has been exceeded on the API. See the EMI API website for policy details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              example:
+                Message: string
+        '503':
+          description: The underlying service is currently busy. Please try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              example:
+                Message: string
+  /single/:
+    get:
+      summary: Get by id
+      description: "Provide a single valid ICP to return its details. This will always return a list.  Any lower case characters in the ICP will be converted to upper case.\n\nA valid ICP is a 15 character string, comprised of 10 digits, 2 characters, and 3 hexi-decimal characters."
+      operationId: getById
+      parameters:
+        - name: ICP
+          in: query
+          description: 'A valid ICP is a 15 character string, comprised of 10 digits, 2 characters, and 3 hexi-decimal characters.'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ICPDetails'
+              example:
+                ICPIdentifier: string
+                ICPStatus: 0
+                Address:
+                  PropertyNameOrDescription: string
+                  PhysicalAddressUnit: string
+                  PhysicalAddressNumber: string
+                  PhysicalAddressStreet: string
+                  PhysicalAddressSuburb: string
+                  PhysicalAddressTown: string
+                  PhysicalAddressRegion: string
+                  PhysicalAddressPostCode: 0
+                  GPS_Easting: 0.0865978299948709
+                  GPS_Northing: 0.0895925387694478
+                Network:
+                  NetworkParticipantID: string
+                  NetworkParticipantName: string
+                  POC: string
+                  ReconciliationType: string
+                  InitialElectricallyConnectedDate: string
+                  GenerationCapacity: 0.592221330558675
+                  FuelType: string
+                  DirectBilledStatus: string
+                Pricing:
+                  DistributorPriceCategoryCode: string
+                  DistributorLossCategoryCode: string
+                  ChargeableCapacity: 0.741668371792703
+                  DistributorInstallationDetails: string
+                Trader:
+                  TraderSwitchInProgress: false
+                  TraderParticipantID: string
+                  TraderParticipantName: string
+                  ProfileCode: string
+                  ANZSICcode: string
+                  DailyUnmeteredkWh: string
+                  UnmeteredLoadDetails: string
+                Metering:
+                  MeteringEquipmentProviderParticipantID: string
+                  MeteringEquipmentProviderParticipantName: string
+                  InstallationInformation:
+                    - MeteringInstallationCategory: 0
+                      MeteringInstallationType: string
+                      CertificationExpiryDate: string
+                      ComponentInformation:
+                        - ComponentType: string
+                          MeteringComponentSerialNumber: string
+                          MeterType: string
+                          AMIFlag: false
+                          CompensationFactor: 0.686705293857509
+                          ChannelInformation:
+                            - MeteringComponentSerialNumber: string
+                              ChannelNumber: 0
+                              RegisterContentCode: string
+                              PeriodOfAvailability: string
+                              UnitOfMeasurement: string
+                              EnergyFlowDirection: string
+                              AccumulatorType: string
+                              SwitchReadIndicator: false
+                Messages:
+                  - string
+        '400':
+          description: "Invalid ICP. An ICP is a 15 character string, comprised of 10 digits, 2 characters, and 3 hexi-decimal characters.\n\neg 0000123456ZZAF0"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ICPDetails'
+              example:
+                ICPIdentifier: XXXXXX
+                ICPStatus: 0
+                Address:
+                Network:
+                Pricing:
+                Trader:
+                Metering:
+                Messages:
+                  - Code: 400
+                    Message: 'Invalid ICP. An ICP is a 15 character string, comprised of 10 digits, 2 characters, and 3 hexi-decimal characters.'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fobidden'
+              example:
+                statusCode: 0
+                message: string
+        '404':
+          description: ICP not found in the registry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ICPDetails'
+              example:
+                ICPIdentifier: 1234567890AA111
+                ICPStatus: 0
+                Address:
+                Network:
+                Pricing:
+                Trader:
+                Metering:
+                Messages:
+                  - Code: 404
+                    Message: ICP not found in the registry.
+        '429':
+          description: The management policy has been exceeded on the API. See the EMI API website for policy details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              example:
+                Message: string
+        '503':
+          description: The underlying service is currently busy. Please try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+              example:
+                Message: string
+components:
+  schemas:
+    ICPNetworkPricing:
+      type: object
+      properties:
+        DistributorPriceCategoryCode:
+          type: string
+        DistributorLossCategoryCode:
+          type: string
+        ChargeableCapacity:
+          type: number
+          format: double
+        DistributorInstallationDetails:
+          type: string
+    MeteringComponentInformation:
+      type: object
+      properties:
+        ComponentType:
+          type: string
+        MeteringComponentSerialNumber:
+          type: string
+        MeterType:
+          type: string
+        AMIFlag:
+          type: boolean
+        CompensationFactor:
+          type: number
+          format: double
+        ChannelInformation:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeteringChannelInformation'
+      example:
+        ComponentType: string
+        MeteringComponentSerialNumber: string
+        MeterType: string
+        AMIFlag: false
+        CompensationFactor: 0.251554015651762
+        ChannelInformation:
+          - MeteringComponentSerialNumber: string
+            ChannelNumber: 0
+            RegisterContentCode: string
+            PeriodOfAvailability: string
+            UnitOfMeasurement: string
+            EnergyFlowDirection: string
+            AccumulatorType: string
+    MeteringInstallationInformation:
+      type: object
+      properties:
+        MeteringInstallationCategory:
+          type: integer
+          format: int32
+        MeteringInstallationType:
+          type: string
+        CertificationExpiryDate:
+          type: string
+        ComponentInformation:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeteringComponentInformation'
+      example:
+        MeteringInstallationCategory: 0
+        MeteringInstallationType: string
+        CertificationExpiryDate: string
+        ComponentInformation:
+          - ComponentType: string
+            MeteringComponentSerialNumber: string
+            MeterType: string
+            AMIFlag: false
+            CompensationFactor: 0.304705651574137
+            ChannelInformation:
+              - MeteringComponentSerialNumber: string
+                ChannelNumber: 0
+                RegisterContentCode: string
+                PeriodOfAvailability: string
+                UnitOfMeasurement: string
+                EnergyFlowDirection: string
+                AccumulatorType: string
+    ICPTrader:
+      type: object
+      properties:
+        TraderSwitchInProgress:
+          type: boolean
+        TraderParticipantID:
+          type: string
+        TraderParticipantName:
+          type: string
+        ProfileCode:
+          type: string
+        ANZSICcode:
+          type: string
+        DailyUnmeteredkWh:
+          type: string
+        UnmeteredLoadDetails:
+          type: string
+      example:
+        TraderSwitchInProgress: false
+        TraderParticipantID: string
+        TraderParticipantName: string
+        ProfileCode: string
+        ANZSICcode: string
+        DailyUnmeteredkWh: string
+        UnmeteredLoadDetails: string
+    ICPNetwork:
+      type: object
+      properties:
+        NetworkParticipantID:
+          type: string
+        NetworkParticipantName:
+          type: string
+        POC:
+          type: string
+        ReconciliationType:
+          type: string
+        InitialElectricallyConnectedDate:
+          type: string
+        GenerationCapacity:
+          type: number
+          format: double
+        FuelType:
+          type: string
+        DirectBilledStatus:
+          type: string
+      example:
+        NetworkParticipantID: string
+        NetworkParticipantName: string
+        POC: string
+        ReconciliationType: string
+        InitialElectricallyConnectedDate: string
+        GenerationCapacity: 0.570737103428481
+        FuelType: string
+        DirectBilledStatus: string
+    MeteringChannelInformation:
+      type: object
+      properties:
+        MeteringComponentSerialNumber:
+          type: string
+        ChannelNumber:
+          type: integer
+          format: int32
+        RegisterContentCode:
+          type: string
+        PeriodOfAvailability:
+          type: string
+        UnitOfMeasurement:
+          type: string
+        EnergyFlowDirection:
+          type: string
+        AccumulatorType:
+          type: string
+        SwitchReadIndicator:
+          type: boolean
+      example:
+        MeteringComponentSerialNumber: string
+        ChannelNumber: 0
+        RegisterContentCode: string
+        PeriodOfAvailability: string
+        UnitOfMeasurement: string
+        EnergyFlowDirection: string
+        AccumulatorType: string
+        SwitchReadIndicator: false
+    ICPMetering:
+      type: object
+      properties:
+        MeteringEquipmentProviderParticipantID:
+          type: string
+        MeteringEquipmentProviderParticipantName:
+          type: string
+        InstallationInformation:
+          type: array
+          items:
+            $ref: '#/components/schemas/MeteringInstallationInformation'
+      example:
+        MeteringEquipmentProviderParticipantID: string
+        MeteringEquipmentProviderParticipantName: string
+        InstallationInformation:
+          - MeteringInstallationCategory: 0
+            MeteringInstallationType: string
+            CertificationExpiryDate: string
+            ComponentInformation:
+              - ComponentType: string
+                MeteringComponentSerialNumber: string
+                MeterType: string
+                AMIFlag: false
+                CompensationFactor: 0.0709180968256213
+                ChannelInformation:
+                  - MeteringComponentSerialNumber: string
+                    ChannelNumber: 0
+                    RegisterContentCode: string
+                    PeriodOfAvailability: string
+                    UnitOfMeasurement: string
+                    EnergyFlowDirection: string
+                    AccumulatorType: string
+                    SwitchReadIndicator: false
+    BadRequest:
+      type: object
+      properties:
+        Message:
+          type: string
+      example:
+        Message: string
+    Fobidden:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+      example:
+        statusCode: 0
+        message: string
+    ICPDetails:
+      type: object
+      properties:
+        ICPIdentifier:
+          type: string
+        ICPStatus:
+          type: integer
+          format: int32
+        Address:
+          $ref: '#/components/schemas/ICPAddress'
+        Network:
+          $ref: '#/components/schemas/ICPNetwork'
+        Pricing:
+          $ref: '#/components/schemas/ICPNetworkPricing'
+        Trader:
+          $ref: '#/components/schemas/ICPTrader'
+        Metering:
+          $ref: '#/components/schemas/ICPMetering'
+        Messages:
+          type: array
+          items:
+            type: string
+      example:
+        ICPIdentifier: string
+        ICPStatus: 0
+        Address:
+          PropertyNameOrDescription: string
+          PhysicalAddressStreet: string
+          PhysicalAddressSuburb: string
+          PhysicalAddressTown: string
+          PhysicalAddressRegion: string
+          PhysicalAddressPostCode: 0
+          GPS_Easting: 0.0865978299948709
+          GPS_Northing: 0.0895925387694478
+        Network:
+          NetworkParticipantID: string
+          NetworkParticipantName: string
+          POC: string
+          ReconciliationType: string
+          InitialElectricallyConnectedDate: string
+          GenerationCapacity: 0.592221330558675
+          FuelType: string
+          DirectBilledStatus: string
+        Pricing:
+          DistributorPriceCategoryCode: string
+          DistributorLossCategoryCode: string
+          ChargeableCapacity: 0.741668371792703
+          DistributorInstallationDetails: string
+        Trader:
+          TraderSwitchInProgress: false
+          TraderParticipantID: string
+          TraderParticipantName: string
+          ProfileCode: string
+          ANZSICcode: string
+          DailyUnmeteredkWh: string
+          UnmeteredLoadDetails: string
+        Metering:
+          MeteringEquipmentProviderParticipantID: string
+          MeteringEquipmentProviderParticipantName: string
+          InstallationInformation:
+            - MeteringInstallationCategory: 0
+              MeteringInstallationType: string
+              CertificationExpiryDate: string
+              ComponentInformation:
+                - ComponentType: string
+                  MeteringComponentSerialNumber: string
+                  MeterType: string
+                  AMIFlag: false
+                  CompensationFactor: 0.686705293857509
+                  ChannelInformation:
+                    - MeteringComponentSerialNumber: string
+                      ChannelNumber: 0
+                      RegisterContentCode: string
+                      PeriodOfAvailability: string
+                      UnitOfMeasurement: string
+                      EnergyFlowDirection: string
+                      AccumulatorType: string
+                      SwitchReadIndicator: false
+        RegistryMessages:
+          - string
+    ICPSearchDetails:
+      type: object
+      properties:
+        Address:
+          $ref: '#/components/schemas/ICPAddress'
+        ICPIdentifier:
+          type: string
+        ICPStatus:
+          type: integer
+          format: int32
+        Messages:
+          type: array
+          items:
+            type: string
+      example:
+        Address:
+          PropertyNameOrDescription: string
+          PhysicalAddressStreet: string
+          PhysicalAddressSuburb: string
+          PhysicalAddressTown: string
+          PhysicalAddressRegion: string
+          PhysicalAddressPostCode: 0
+          GPS_Easting: 0.0989286100290292
+          GPS_Northing: 0.799358073891151
+        ICPIdentifier: string
+        ICPStatus: 0
+        Messages:
+          - string
+    ICPAddress:
+      type: object
+      properties:
+        PropertyNameOrDescription:
+          type: string
+        PhysicalAddressUnit:
+          type: string
+        PhysicalAddressNumber:
+          type: string
+        PhysicalAddressStreet:
+          type: string
+        PhysicalAddressSuburb:
+          type: string
+        PhysicalAddressTown:
+          type: string
+        PhysicalAddressRegion:
+          type: string
+        PhysicalAddressPostCode:
+          type: integer
+          format: int32
+        GPS_Easting:
+          type: number
+          format: double
+        GPS_Northing:
+          type: number
+          format: double
+      example:
+        PropertyNameOrDescription: string
+        PhysicalAddressUnit: string
+        PhysicalAddressNumber: string
+        PhysicalAddressStreet: string
+        PhysicalAddressSuburb: string
+        PhysicalAddressTown: string
+        PhysicalAddressRegion: string
+        PhysicalAddressPostCode: 0
+        GPS_Easting: 0.177888435387265
+        GPS_Northing: 0.249474406126779
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      name: Ocp-Apim-Subscription-Key
+      in: header
+    apiKeyQuery:
+      type: apiKey
+      name: subscription-key
+      in: query
+security:
+  - apiKeyHeader: [ ]
+  - apiKeyQuery: [ ]
